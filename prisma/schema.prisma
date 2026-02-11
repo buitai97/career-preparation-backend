@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+    provider = "prisma-client"
+    output   = "../src/generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model User {
+    id        String   @id @default(uuid())
+    name      String
+    email     String   @unique
+    password  String
+    createdAt DateTime @default(now())
+
+    resumes  Resume[]
+    sessions InterviewSession[]
+}
+
+model Resume {
+    id        String   @id @default(uuid())
+    userId    String
+    title     String
+    createdAt DateTime @default(now())
+
+    resumeSections    ResumeSection[]
+    user              User               @relation(fields: [userId], references: [id])
+    interviewSessions InterviewSession[]
+}
+
+model ResumeSection {
+    id       String @id @default(uuid())
+    resumeId String
+    order    Int
+    type     String
+    content  Json
+
+    resume Resume @relation(fields: [resumeId], references: [id])
+}
+
+model InterviewSession {
+    id        String   @id @default(uuid())
+    userId    String
+    role      String
+    createdAt DateTime @default(now())
+    resumeId  String?
+
+    resume    Resume?             @relation(fields: [resumeId], references: [id])
+    questions InterviewQuestion[]
+    user      User                @relation(fields: [userId], references: [id])
+}
+
+model InterviewQuestion {
+    id        String @id @default(uuid())
+    sessionId String
+    question  String
+
+    answers InterviewAnswer[]
+    session InterviewSession  @relation(fields: [sessionId], references: [id])
+}
+
+model InterviewAnswer {
+    id         String @id @default(uuid())
+    questionId String
+    answer     String
+
+    question InterviewQuestion @relation(fields: [questionId], references: [id])
+    feedback AnswerFeedback?
+}
+
+model AnswerFeedback {
+    id           String @id @default(uuid())
+    answerId     String @unique
+    score        Int
+    strengths    String
+    improvements String
+
+    answer InterviewAnswer @relation(fields: [answerId], references: [id])
+}
