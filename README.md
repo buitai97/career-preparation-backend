@@ -60,6 +60,7 @@ Create a .env file in the project root:
 ```bash
 DATABASE_URL=postgresql://postgres:postgres@localhost:5433/career_prep
 PORT=5000
+OPENAI_API_KEY=""
 ```
 
 ## 📦 Install Dependencies
