@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import testRoute from "./modules/test/test.route";
+import authRoutes from "./modules/auth/auth.routes";
 
 const app = express();
 
@@ -9,13 +9,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Import routes
-app.use("/api/test", testRoute);
 
 app.get("/health", (req, res) => {
     res.json({ status: "OK" });
 });
-app.get("/ping", (req, res) => {
-    res.send("pong");
-});
 
+app.use("/api/auth", authRoutes);
 export default app;
