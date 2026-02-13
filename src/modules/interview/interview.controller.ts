@@ -90,3 +90,21 @@ export const addFeedback = async (
         next(error);
     }
 };
+export const getAnalytics = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user!.id;
+
+    const analytics = await InterviewService.getInterviewAnalytics(
+      userId
+    );
+
+    res.json(analytics);
+  } catch (error) {
+    next(error);
+  }
+};
+

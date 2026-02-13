@@ -81,6 +81,8 @@ export const submitAnswer = async (
             improvements: aiFeedback.improvements || "",
         },
     });
+    await finalizeSessionIfComplete(fullQuestion!.sessionId);
+
 };
 
 export const addFeedback = async (
@@ -113,4 +115,91 @@ export const addFeedback = async (
             improvements,
         },
     });
+};
+
+const finalizeSessionIfComplete = async (sessionId: string) => {
+  const questions = await prisma.interviewQuestion.findMany({
+    where: { sessionId },
+    include: {
+      answers: {
+        include: {
+          feedback: true,
+        },
+      },
+    },
+  });
+
+  // Check if every question has at least one answer with feedback
+  const allAnswered = questions.every((q) =>
+    q.answers.some((a) => a.feedback)
+  );
+
+  if (!allAnswered) return;
+
+  // Collect all feedback scores
+  const scores = questions.flatMap((q) =>
+    q.answers
+      .filter((a) => a.feedback)
+      .map((a) => a.feedback!.score)
+  );
+
+  const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+
+  await prisma.interviewSession.update({
+    where: { id: sessionId },
+    data: {
+      status: "COMPLETED",
+      overallScore: avgScore,
+      completedAt: new Date(),
+    },
+  });
+};
+
+export const getInterviewAnalytics = async (userId: string) => {
+  const sessions = await prisma.interviewSession.findMany({
+    where: {
+      userId,
+      status: "COMPLETED",
+    },
+    orderBy: {
+      completedAt: "asc",
+    },
+  });
+
+  if (sessions.length === 0) {
+    return {
+      totalSessions: 0,
+      completedSessions: 0,
+      averageScore: 0,
+      bestScore: 0,
+      worstScore: 0,
+      recentTrend: [],
+    };
+  }
+
+  const scores = sessions
+    .map((s) => s.overallScore)
+    .filter((score): score is number => score !== null);
+
+  const totalSessions = sessions.length;
+
+  const averageScore =
+    scores.reduce((sum, score) => sum + score, 0) / scores.length;
+
+  const bestScore = Math.max(...scores);
+  const worstScore = Math.min(...scores);
+
+  const recentTrend = sessions.map((s) => ({
+    date: s.completedAt,
+    score: s.overallScore,
+  }));
+
+  return {
+    totalSessions,
+    completedSessions: totalSessions,
+    averageScore,
+    bestScore,
+    worstScore,
+    recentTrend,
+  };
 };
