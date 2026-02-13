@@ -13,8 +13,8 @@ Built with Express, TypeScript, Prisma, and PostgreSQL (Docker).
 - **TypeScript**
 - **Prisma 7**
 - **PostgreSQL (Docker)**
-- **JWT (Authentication - upcoming)**
-- **Bcrypt (Password hashing - upcoming)**
+- **JWT (Authentication)**
+- **Bcrypt (Password hashing)**
 
 ---
 
