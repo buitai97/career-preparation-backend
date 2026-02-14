@@ -7,11 +7,10 @@ import { createTestUser } from "./helpers/createTestUser";
 afterEach(async () => {
     await clearDatabase();
 });
+afterAll(async () => {
+    await prisma.$disconnect();
+});
 describe("Auth Routes", () => {
-    afterAll(async () => {
-        await prisma.$disconnect();
-    });
-
     it("should register a user", async () => {
         const email = `test-${Date.now()}@example.com`;
         const password = "123456";
