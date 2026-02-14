@@ -16,8 +16,18 @@ router.use(authMiddleware);
  *     security:
  *       - bearerAuth: []
  *     responses:
- *       200:
+ *       201:
  *         description: Session created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+*               allOf:
+ *               - $ref: '#/components/schemas/ApiResponse'
+ *               - type: object
+ *                 properties:
+ *                  data:
+ *                    $ref: '#/components/schemas/InterviewSession'
+ * 
  *       401:
  *         description: Unauthorized
  *       403:

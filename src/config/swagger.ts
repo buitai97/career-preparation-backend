@@ -1,4 +1,5 @@
 import swaggerJsdoc from "swagger-jsdoc";
+import { SessionStatus } from "../generated/prisma/browser";
 
 const options: swaggerJsdoc.Options = {
     definition: {
@@ -21,7 +22,84 @@ const options: swaggerJsdoc.Options = {
                     bearerFormat: "JWT",
                 },
             },
+            schemas: {
+                CreateInterviewSession: {
+                    type: "object",
+                    required: ["role"],
+                    properties: {
+                        role: {
+                            type: "string",
+                            example: "Backend Developer",
+                        },
+                    },
+                },
+                SubmitAnswer: {
+                    type: "object",
+                    required: ["answer"],
+                    properties: {
+                        answer: {
+                            type: "string",
+                            example: "I would optimize the query using indexing...",
+                        },
+                    },
+                },
+                Resume: {
+                    type: "object",
+                    properties: {
+                        title: { type: "string", example: "Software Engineer Resume" },
+                    },
+                },
+                ResumeSection: {
+                    type: "object",
+                    properties: {
+                        title: { type: "string" },
+                        content: { type: "object" },
+                        order: { type: "integer" },
+                    },
+                },
+                InterviewSession: {
+                    type: "object",
+                    properties: {
+                        id: { type: "string" },
+                        userId: { type: "string" },
+                        role: { type: "string" },
+                        status: { type: "string", enum: SessionStatus },
+                        createdAt: { type: "string", format: "date-time" },
+                        updatedAt: { type: "string", format: "date-time" },
+                        questions: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    id: { type: "string" },
+                                    sessionId: { type: "string" },
+                                    question: { type: "string" },
+                                    answers: { type: "string" }
+                                },
+                            },
+                        },
+                    },
+                },
+                ApiResponse: {
+                    type: "object",
+                    properties: {
+                        success: {
+                            type: "boolean",
+                            example: true,
+                        },
+                        message: {
+                            type: "string",
+                            example: "Operation successful",
+                        },
+                        data: {
+                            type: "object",
+                            nullable: true,
+                        },
+                    },
+                },
+            },
         },
+
     },
     apis: ["./src/modules/**/*.ts"], // scans route files
 };

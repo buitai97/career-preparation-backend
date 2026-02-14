@@ -12,7 +12,7 @@ router.use(authMiddleware);
  * /api/resumes/{id}/sections:
  *   post:
  *     summary: Create a new section in a resume
- *     tags: [Section]
+ *     tags: [Resume Section]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -20,14 +20,7 @@ router.use(authMiddleware);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               content:
- *                 type: json
- *               order:
- *                 type: integer
+ *             $ref: '#/components/schemas/ResumeSection'
  *     responses:
  *       200:
  *         description: Section created successfully
@@ -43,7 +36,7 @@ router.post("/:id/sections", ResumeController.createSection);
  * /api/resumes/{id}/sections:
  *   patch:
  *     summary: Update an existing section in a resume
- *     tags: [Section]
+ *     tags: [Resume Section]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -51,14 +44,7 @@ router.post("/:id/sections", ResumeController.createSection);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               content:
- *                 type: json
- *               order:
- *                 type: integer
+ *             $ref: '#/components/schemas/ResumeSection'
  *     responses:
  *       200:
  *         description: Section updated successfully
@@ -74,7 +60,7 @@ router.patch("/sections/:id", ResumeController.updateSection);
  * /api/resumes/{id}/sections:
  *   delete:
  *     summary: Delete a section from a resume
- *     tags: [Section]
+ *     tags: [Resume Section]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -100,10 +86,7 @@ router.delete("/sections/:id", ResumeController.deleteSection);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
+ *             $ref: '#/components/schemas/Resume'
  *     responses:
  *       201:
  *         description: Resume created successfully
