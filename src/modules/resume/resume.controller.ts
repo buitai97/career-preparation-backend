@@ -6,12 +6,11 @@ import * as ResumeService from "./resume.service";
 /**
  * POST /api/resumes
  */
-const createResume = async (
+export const createResume = async (
     req: AuthRequest,
     res: Response,
     next: NextFunction
 ) => {
-    console.log(req.body);
     try {
         const userId = req.user!.id;
         const { title } = req.body;
@@ -27,7 +26,7 @@ const createResume = async (
 /**
  * GET /api/resumes
  */
-const getUserResumes = async (
+export const getUserResumes = async (
     req: AuthRequest,
     res: Response,
     next: NextFunction
@@ -46,7 +45,7 @@ const getUserResumes = async (
 /**
  * GET /api/resumes/:id
  */
-const getResumeById = async (
+export const getResumeById = async (
     req: AuthRequest,
     res: Response,
     next: NextFunction
@@ -69,7 +68,7 @@ const getResumeById = async (
 /**
  * DELETE /api/resumes/:id
  */
-const deleteResume = async (
+export const deleteResume = async (
     req: AuthRequest,
     res: Response,
     next: NextFunction
@@ -89,7 +88,7 @@ const deleteResume = async (
 /**
  * POST /api/resumes/:id/sections
  */
-const createSection = async (
+export const createSection = async (
     req: AuthRequest,
     res: Response,
     next: NextFunction
@@ -116,7 +115,7 @@ const createSection = async (
 /**
  * PATCH /api/sections/:id
  */
-const updateSection = async (
+export const updateSection = async (
     req: AuthRequest,
     res: Response,
     next: NextFunction
@@ -141,7 +140,7 @@ const updateSection = async (
 /**
  * DELETE /api/sections/:id
  */
-const deleteSection = async (
+export const deleteSection = async (
     req: AuthRequest,
     res: Response,
     next: NextFunction
@@ -158,12 +157,3 @@ const deleteSection = async (
     }
 }
 
-export {
-    createResume,
-    getUserResumes,
-    getResumeById,
-    deleteResume,
-    createSection,
-    updateSection,
-    deleteSection,
-};
