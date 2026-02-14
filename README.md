@@ -1,10 +1,18 @@
 # 🚀 Career Prep Backend
+![CI](https://github.com/buitai97/career-preparation-backend/actions/workflows/ci.yml/badge.svg)
 
 Backend API for the Career Prep Platform — an AI-powered resume builder and interview practice system.
 
 Built with Express, TypeScript, Prisma, and PostgreSQL (Docker).
 
 ---
+## 🌍 Live API
+
+Production API:
+https://career-preparation-backend.onrender.com
+
+Swagger Docs:
+https://career-preparation-backend.onrender.com/api/docs
 
 ## 🏗 Tech Stack
 
