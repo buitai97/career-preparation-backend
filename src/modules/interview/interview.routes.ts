@@ -22,7 +22,7 @@ router.use(authMiddleware);
  *           application/json:
  *             schema:
 *               allOf:
- *               - $ref: '#/components/schemas/ApiResponse'
+ *               - $ref: '#/components/schemas/ApiResponseOnSuccess'
  *               - type: object
  *                 properties:
  *                  data:
@@ -30,6 +30,12 @@ router.use(authMiddleware);
  * 
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *              allOf:   
+ *               - $ref: '#/components/schemas/ApiResponseOnError'
+ * 
  *       403:
  *         description: Forbidden
  */

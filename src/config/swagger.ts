@@ -80,7 +80,7 @@ const options: swaggerJsdoc.Options = {
                         },
                     },
                 },
-                ApiResponse: {
+                ApiResponseOnSuccess: {
                     type: "object",
                     properties: {
                         success: {
@@ -97,9 +97,22 @@ const options: swaggerJsdoc.Options = {
                         },
                     },
                 },
+                ApiResponseOnError: {
+                    type: "object",
+                    properties: {
+                        success: {
+                            type: "boolean",
+                            example: false,
+                        },
+                        message: {
+                            type: "string",
+                            example: "Operation failed",
+                        },
+                    },
+                },
             },
-        },
 
+        },
     },
     apis: ["./src/modules/**/*.ts"], // scans route files
 };
