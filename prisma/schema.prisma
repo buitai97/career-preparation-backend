@@ -10,7 +10,7 @@ generator client {
 }
 
 datasource db {
-    provider = "postgresql"
+    provider = "mongodb"
 }
 
 enum ResumeSectionType {
@@ -27,7 +27,7 @@ enum SessionStatus {
 }
 
 model User {
-    id        String   @id @default(uuid())
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
     name      String
     email     String   @unique
     password  String
@@ -39,84 +39,83 @@ model User {
 }
 
 model Resume {
-    id             String          @id @default(uuid())
-    userId         String
+    id             String          @id @default(auto()) @map("_id") @db.ObjectId
+    userId         String          @db.ObjectId
     title          String
     createdAt      DateTime        @default(now())
     updatedAt      DateTime        @default(now()) @updatedAt
     resumeSections ResumeSection[]
 
-    user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user              User               @relation(fields: [userId], references: [id])
     interviewSessions InterviewSession[]
 
     @@index([userId])
 }
 
 model ResumeSection {
-    id        String   @id @default(uuid())
-    resumeId  String
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    resumeId  String   @db.ObjectId
     order     Int
     type      ResumeSectionType
     content   Json
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
 
-    resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+    resume Resume @relation(fields: [resumeId], references: [id])
 
     @@index([resumeId])
     @@index([resumeId, order])
 }
 
 model InterviewSession {
-    id        String   @id @default(uuid())
-    userId    String
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    userId    String   @db.ObjectId
     role      String
     status    SessionStatus @default(IN_PROGRESS)
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
     completedAt DateTime?
     overallScore Float?
-    resumeId  String?
+    resumeId  String? @db.ObjectId
 
-    resume    Resume?             @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+    resume    Resume?             @relation(fields: [resumeId], references: [id])
     questions InterviewQuestion[]
-    user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user      User                @relation(fields: [userId], references: [id])
 
     @@index([userId])
     @@index([resumeId])
 }
 
 model InterviewQuestion {
-    id        String @id @default(uuid())
-    sessionId String
+    id        String @id @default(auto()) @map("_id") @db.ObjectId
+    sessionId String @db.ObjectId
     question  String
 
     answers InterviewAnswer[]
-    session InterviewSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+    session InterviewSession  @relation(fields: [sessionId], references: [id])
 
     @@index([sessionId])
 }
 
 model InterviewAnswer {
-    id         String @id @default(uuid())
-    questionId String
+    id         String @id @default(auto()) @map("_id") @db.ObjectId
+    questionId String @db.ObjectId
     answer     String
 
-    question InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+    question InterviewQuestion @relation(fields: [questionId], references: [id])
     feedback AnswerFeedback?
 
     @@index([questionId])
 }
 
 model AnswerFeedback {
-    id           String @id @default(uuid())
-    answerId     String @unique
+    id           String @id @default(auto()) @map("_id") @db.ObjectId
+    answerId     String @unique @db.ObjectId
     score        Float
     strengths    String
     improvements String
     createdAt     DateTime @default(now())
 
-    answer InterviewAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+    answer InterviewAnswer @relation(fields: [answerId], references: [id])
 
-    @@index([answerId])
 }

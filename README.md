@@ -1,95 +1,64 @@
-# 🚀 Career Prep Backend
+# Career Prep Backend
 
-![CI](https://github.com/buitai97/career-preparation-backend/actions/workflows/ci.yml/badge.svg)
+Backend API for the Career Prep Platform, an AI-powered resume builder and interview practice system.
 
-Backend API for the Career Prep Platform — an AI-powered resume builder and interview practice system.
-
-Frontend Repository:
+Frontend repository:
 https://github.com/buitai97/career-prep-frontend
 
-Built with Express, TypeScript, Prisma, and PostgreSQL (Docker).
+Tech stack:
+- Node.js
+- Express
+- TypeScript
+- Prisma 7
+- MongoDB Atlas
+- JWT
+- Bcrypt
 
----
+## Project Structure
 
-## 🌍 Live API
+`src/`
+- `config/` app config and Prisma client
+- `modules/` feature modules (`auth`, `resume`, `interview`)
+- `middleware/` Express middleware
+- `app.ts`
+- `server.ts`
 
-Production API:
-https://career-preparation-backend.onrender.com
+`prisma/`
+- `schema.prisma`
 
-Swagger Docs:
-https://career-preparation-backend.onrender.com/api/docs
+## Environment Variables
 
-## 🏗 Tech Stack
-
-- **Node.js**
-- **Express**
-- **TypeScript**
-- **Prisma 7**
-- **PostgreSQL (Docker)**
-- **JWT (Authentication)**
-- **Bcrypt (Password hashing)**
-
----
-
-## 📦 Project Structure
-
-src/ <br>
-├──config/ # Prisma & environment config <br>
-├──modules/ # Feature-based modules (auth, resume, interview) <br>
-├──middleware/ # Express middleware (auth, error handling) <br>
-├──app.ts <br>
-├──server.ts <br>
-
-prisma/ <br>
-├── schema.prisma <br>
-└── migrations/ <br>
-
-docker-compose.yml
-
-## 🐳 Database Setup (Docker)
-
-Start PostgreSQL:
+Create a `.env` file in the project root:
 
 ```bash
-docker compose up -d
-```
-
-Database runs on:
-
-```bash
-localhost:5433
-```
-
-Stop and remove database:
-
-```bash
-docker compose down -v
-```
-
-## ⚙️ Environment Variables
-
-Create a .env file in the project root and add your KEYS:
-
-```bash
-DATABASE_URL=postgresql://postgres:postgres@localhost:5433/career_prep
+DATABASE_URL=mongodb+srv://<username>:<password>@<cluster-name>.mongodb.net/career_prep?retryWrites=true&w=majority&appName=career-prep
+TEST_DATABASE_URL=mongodb+srv://<username>:<password>@<cluster-name>.mongodb.net/career_prep_test?retryWrites=true&w=majority&appName=career-prep
 PORT=5000
 OPENAI_API_KEY=YOUR_OPENAI_API_KEY
-SECRET_KEY=YOUR_JWT_SECRET_KEY
+JWT_SECRET=YOUR_JWT_SECRET
+FRONTEND_URL=http://localhost:3000
 ```
 
-## 📦 Install Dependencies
+## Atlas Setup Notes
+
+- In MongoDB Atlas, allow your development IP in Network Access.
+- Create a database user with read/write access.
+- Replace `<username>`, `<password>`, and `<cluster-name>` in your URI.
+
+## Install Dependencies
 
 ```bash
 npm install
 ```
 
-## 🧬 Run Database Migration
+## Sync Prisma Schema to MongoDB
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma db push
+npx prisma generate
 ```
 
-## ▶️ Run Development Server
+## Run Development Server
 
 ```bash
 npm run dev
@@ -99,5 +68,12 @@ Server runs at:
 
 ```bash
 http://localhost:5000
+```
 
+## Optional Local MongoDB (Docker)
+
+If you want local MongoDB instead of Atlas for development:
+
+```bash
+docker compose up -d
 ```
