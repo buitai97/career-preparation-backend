@@ -1,122 +1,109 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-    provider = "prisma-client"
-    output   = "../src/generated/prisma"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
-    provider = "postgresql"
-}
-
-enum ResumeSectionType {
-    EDUCATION
-    EXPERIENCE
-    SKILLS
-    PROJECT
-    OTHER
-}
-
-enum SessionStatus {
-    IN_PROGRESS
-    COMPLETED
+  provider = "postgresql"
 }
 
 model User {
-    id        String   @id @default(uuid())
-    name      String
-    email     String   @unique
-    password  String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
-
-    resumes  Resume[]
-    sessions InterviewSession[]
+  id        String             @id @default(uuid())
+  name      String
+  email     String             @unique
+  password  String
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @default(now()) @updatedAt
+  sessions  InterviewSession[]
+  resumes   Resume[]
 }
 
 model Resume {
-    id             String          @id @default(uuid())
-    userId         String
-    title          String
-    createdAt      DateTime        @default(now())
-    updatedAt      DateTime        @default(now()) @updatedAt
-    resumeSections ResumeSection[]
+  id                String             @id @default(uuid())
+  userId            String
+  title             String
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @default(now()) @updatedAt
+  interviewSessions InterviewSession[]
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumeSections    ResumeSection[]
 
-    user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-    interviewSessions InterviewSession[]
-
-    @@index([userId])
+  @@index([userId])
 }
 
 model ResumeSection {
-    id        String   @id @default(uuid())
-    resumeId  String
-    order     Int
-    type      ResumeSectionType
-    content   Json
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
+  id        String            @id @default(uuid())
+  resumeId  String
+  order     Int
+  content   Json
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @default(now()) @updatedAt
+  type      ResumeSectionType
+  resume    Resume            @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
-    resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-
-    @@index([resumeId])
-    @@index([resumeId, order])
+  @@index([resumeId])
+  @@index([resumeId, order])
 }
 
 model InterviewSession {
-    id        String   @id @default(uuid())
-    userId    String
-    role      String
-    status    SessionStatus @default(IN_PROGRESS)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
-    completedAt DateTime?
-    overallScore Float?
-    resumeId  String?
+  id           String              @id @default(uuid())
+  userId       String
+  role         String
+  createdAt    DateTime            @default(now())
+  resumeId     String?
+  updatedAt    DateTime            @default(now()) @updatedAt
+  completedAt  DateTime?
+  overallScore Float?
+  status       SessionStatus       @default(IN_PROGRESS)
+  questions    InterviewQuestion[]
+  resume       Resume?             @relation(fields: [resumeId], references: [id])
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    resume    Resume?             @relation(fields: [resumeId], references: [id], onDelete: SetNull)
-    questions InterviewQuestion[]
-    user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    @@index([userId])
-    @@index([resumeId])
+  @@index([userId])
+  @@index([resumeId])
 }
 
 model InterviewQuestion {
-    id        String @id @default(uuid())
-    sessionId String
-    question  String
+  id        String            @id @default(uuid())
+  sessionId String
+  question  String
+  answers   InterviewAnswer[]
+  session   InterviewSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
-    answers InterviewAnswer[]
-    session InterviewSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-
-    @@index([sessionId])
+  @@index([sessionId])
 }
 
 model InterviewAnswer {
-    id         String @id @default(uuid())
-    questionId String
-    answer     String
+  id         String            @id @default(uuid())
+  questionId String
+  answer     String
+  feedback   AnswerFeedback?
+  question   InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-    question InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-    feedback AnswerFeedback?
-
-    @@index([questionId])
+  @@index([questionId])
 }
 
 model AnswerFeedback {
-    id           String @id @default(uuid())
-    answerId     String @unique
-    score        Float
-    strengths    String
-    improvements String
-    createdAt     DateTime @default(now())
+  id           String          @id @default(uuid())
+  answerId     String          @unique
+  score        Float
+  strengths    String
+  improvements String
+  createdAt    DateTime        @default(now())
+  answer       InterviewAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
 
-    answer InterviewAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  @@index([answerId])
+}
 
-    @@index([answerId])
+enum ResumeSectionType {
+  EDUCATION
+  EXPERIENCE
+  SKILLS
+  PROJECT
+  OTHER
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
 }
