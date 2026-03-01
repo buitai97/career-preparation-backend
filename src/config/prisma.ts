@@ -4,7 +4,7 @@ import fs from 'fs'
 import path from 'path'
 
 const ca = fs.readFileSync(
-    path.join(__dirname, '../../certs/ca.pem')
+  path.join(process.cwd(), 'certs', 'ca.pem')
 )
 
 const adapter = new PrismaPg({
