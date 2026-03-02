@@ -4,7 +4,7 @@ import fs from 'fs'
 import path from 'path'
 
 let sslConfig;
-if (process.env.RENDER) {
+if (process.env.AIVEN_CA_CERT) {
     sslConfig = {
         rejectUnauthorized: true,
         ca: process.env.AIVEN_CA_CERT,
