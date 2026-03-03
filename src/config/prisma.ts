@@ -1,30 +1,37 @@
-import { PrismaClient } from '../generated/prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
-import fs from 'fs'
-import path from 'path'
+import { PrismaClient } from "../generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import fs from "fs";
+import path from "path";
 
-let sslConfig;
-if (process.env.AIVEN_CA_CERT) {
-    sslConfig = {
-        rejectUnauthorized: true,
-        ca: process.env.AIVEN_CA_CERT,
-    }
-}
-else {
-    sslConfig = {
-        rejectUnauthorized: true,
-        ca: fs.readFileSync(
-            path.resolve(process.cwd(), "certs/ca.pem")
-        ).toString()
-    }
-}
+const connectionString = process.env.DATABASE_URL!;
+const isLocalDb =
+    connectionString.includes("localhost") ||
+    connectionString.includes("127.0.0.1");
+
+const shouldUseSsl = process.env.DB_SSL === "true" || !isLocalDb;
+
 const adapter = new PrismaPg({
-    connectionString: process.env.DATABASE_URL!,
-    ssl: sslConfig,
-})
+    connectionString,
+    ...(shouldUseSsl
+        ? {
+              ssl: process.env.AIVEN_CA_CERT
+                  ? {
+                        rejectUnauthorized: true,
+                        ca: process.env.AIVEN_CA_CERT,
+                    }
+                  : {
+                        rejectUnauthorized: true,
+                        ca: fs.readFileSync(
+                            path.resolve(process.cwd(), "certs/ca.pem"),
+                            "utf8"
+                        ),
+                    },
+          }
+        : {}),
+});
 
 const prisma = new PrismaClient({
     adapter,
-})
+});
 
-export default prisma
+export default prisma;
