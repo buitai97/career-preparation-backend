@@ -3,6 +3,18 @@ import { registerUser, loginUser } from "./auth.service";
 import { generateToken } from "../../utils/jwt";
 import { AuthRequest } from "../../types/express";
 import { asyncHandler } from "../../utils/asyncHandler";
+import { CookieOptions } from "express";
+
+const getAuthCookieOptions = (): CookieOptions => {
+    const sameSite = (process.env.COOKIE_SAMESITE as "lax" | "strict" | "none" | undefined) || "lax";
+    const secure = process.env.COOKIE_SECURE === "true";
+    return {
+        httpOnly: true,
+        secure,
+        sameSite,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+    };
+};
 
 export const register = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { name, email, password } = req.body
@@ -10,12 +22,7 @@ export const register = asyncHandler(async (req: Request, res: Response, next: N
     const user = await registerUser(name, email, password);
 
     const token = generateToken(user.id);
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    res.cookie("token", token, getAuthCookieOptions());
     res.status(201).json({
         user: {
             id: user.id,
@@ -32,12 +39,7 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
         const user = await loginUser(email, password);
 
         const token = generateToken(user.id);
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
+        res.cookie("token", token, getAuthCookieOptions());
         res.json({
             user: {
                 id: user.id,
@@ -51,11 +53,7 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
 });
 
 export const logout = (req: Request, res: Response) => {
-    res.clearCookie("token", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-    });
+    res.clearCookie("token", getAuthCookieOptions());
     res.json({ message: "Logged out successfully" });
 }
 
