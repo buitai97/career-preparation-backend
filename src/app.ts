@@ -14,18 +14,10 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(globalRateLimiter);
 app.use(express.urlencoded({ extended: true }));
-const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
+const allowedOrigins = [process.env.FRONTEND_URL || "http://localhost:3000"]
 
 app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-        return callback(new Error("Not allowed by CORS"));
-    },
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
