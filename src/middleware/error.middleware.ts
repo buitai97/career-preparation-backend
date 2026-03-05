@@ -24,6 +24,13 @@ export const errorHandler = (
         });
     }
 
+    if (err.code === "P2003") {
+        return res.status(401).json({
+            success: false,
+            message: "Session is no longer valid. Please log in again.",
+        });
+    }
+
 
 
     // JWT errors
@@ -34,14 +41,14 @@ export const errorHandler = (
         });
     }
 
-    if (err instanceof Error) {
-        return res.status(400).json({
+    if (err.status) {
+        return res.status(err.status).json({
             success: false,
             message: err.message,
         });
     }
-    if (err.status) {
-        return res.status(err.status).json({
+    if (err instanceof Error) {
+        return res.status(400).json({
             success: false,
             message: err.message,
         });
