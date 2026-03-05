@@ -21,6 +21,15 @@ export const createSession = async (
     resumeId?: string,
     interviewType?: string
 ) => {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+    });
+
+    if (!user) {
+        throw { status: 401, message: "Session expired. Please log in again." };
+    }
+
     const normalizedInterviewType = normalizeInterviewType(interviewType);
     const session = await prisma.interviewSession.create({
         data: {
@@ -40,15 +49,17 @@ export const createSession = async (
         normalizedInterviewType || "TECHNICAL"
     );
 
+    const createdQuestions = [];
     for (const question of questions) {
-        await prisma.interviewQuestion.create({
+        const createdQuestion = await prisma.interviewQuestion.create({
             data: {
                 sessionId: session.id,
                 question,
             },
         });
+        createdQuestions.push(createdQuestion);
     }
-    session.questions = questions.map((q) => ({ id: "", sessionId: session.id, question: q, answers: [] }));
+    session.questions = createdQuestions;
     return { session };
 };
 
