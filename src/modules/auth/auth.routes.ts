@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login, logout, getCurrentUser } from "./auth.controller";
+import { register, login, logout, getCurrentUser, updateCurrentUser } from "./auth.controller";
 import { validate } from "../../middleware/validate.middleware";
 import { AuthSchemas } from "./auth.schema";
 import { authMiddleware } from "../../middleware/auth.middleware";
@@ -55,4 +55,5 @@ router.post("/register", validate(AuthSchemas.createUser), register);
 router.post("/login", validate(AuthSchemas.loginUser), login);
 router.post("/logout", logout);
 router.get("/me", authMiddleware, getCurrentUser);
+router.put("/me", authMiddleware, validate(AuthSchemas.updateCurrentUser), updateCurrentUser);
 export default router;

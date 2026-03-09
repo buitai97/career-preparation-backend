@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { registerUser, loginUser } from "./auth.service";
+import { registerUser, loginUser, getUserById, updateUserById } from "./auth.service";
 import { generateToken } from "../../utils/jwt";
 import { AuthRequest } from "../../types/express";
 import { asyncHandler } from "../../utils/asyncHandler";
@@ -57,9 +57,26 @@ export const logout = (req: Request, res: Response) => {
     res.json({ message: "Logged out successfully" });
 }
 
-export const getCurrentUser = (req: AuthRequest, res: Response) => {
+export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
     if (!req.user) {
         return res.status(401).json({ message: "Unauthorized" });
     }
-    res.json({ user: req.user });
-}
+
+    const user = await getUserById(req.user.id);
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ user });
+});
+
+export const updateCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
+    if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { name, email } = req.body;
+    const user = await updateUserById(req.user.id, name, email);
+
+    res.json({ user });
+});

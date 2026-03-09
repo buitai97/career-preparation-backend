@@ -46,3 +46,41 @@ export const loginUser = async (email: string, password: string) => {
     return user;
 };
 
+export const getUserById = async (userId: string) => {
+    return prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+        },
+    });
+};
+
+export const updateUserById = async (userId: string, name: string, email: string) => {
+    const existingUser = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true },
+    });
+
+    if (existingUser && existingUser.id !== userId) {
+        throw {
+            status: 400,
+            message: "Email already in use",
+        };
+    }
+
+    return prisma.user.update({
+        where: { id: userId },
+        data: {
+            name,
+            email,
+        },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+        },
+    });
+};
+
