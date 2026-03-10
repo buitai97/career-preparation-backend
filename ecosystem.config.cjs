@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "backend",
       script: "dist/server.js",
-      cwd: "/home/ubuntu/career-preparation-backend",
+      cwd: "/var/www/career-preparation-backend",
       instances: 1,
       exec_mode: "fork",
       autorestart: true,
