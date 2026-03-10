@@ -30,18 +30,35 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          port: ${{ secrets.EC2_PORT || 22 }}
+          port: 22
           script_stop: true
-          envs: APP_DIR,DEPLOY_BRANCH,NODE_ENV,PM2_APP_NAME
           script: |
-            set -euo pipefail
-            APP_DIR="${{ secrets.EC2_APP_DIR }}"
-            NODE_ENV="production"
-            PM2_APP_NAME="backend"
+            set -e
+
             if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
               DEPLOY_BRANCH="${{ github.event.inputs.branch }}"
-            elif [ "${{ github.event_name }}" = "workflow_run" ]; then
+            else
               DEPLOY_BRANCH="${{ github.event.workflow_run.head_branch }}"
             fi
-            export APP_DIR DEPLOY_BRANCH NODE_ENV PM2_APP_NAME
-            bash "${APP_DIR}/deploy/ec2-deploy.sh"
+
+            echo "Deploying branch: $DEPLOY_BRANCH"
+
+            cd /var/www/backend
+
+            echo "Pulling latest code..."
+            git fetch origin
+            git checkout $DEPLOY_BRANCH
+            git pull origin $DEPLOY_BRANCH
+
+            echo "Installing dependencies..."
+            npm ci
+
+            echo "Building project..."
+            npm run build
+
+            echo "Restarting backend with PM2..."
+            pm2 delete backend 2>/dev/null || true
+            pm2 start dist/server.js --name backend --cwd /var/www/backend
+            pm2 save
+
+            echo "Deployment successful."
