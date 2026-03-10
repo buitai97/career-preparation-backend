@@ -5,9 +5,14 @@ on:
     workflows: ["CI"]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy"
+        required: true
+        default: "main"
 
 concurrency:
-  group: cd-main
+  group: cd-${{ github.ref_name || github.event.workflow_run.head_branch || 'manual' }}
   cancel-in-progress: true
 
 jobs:
@@ -15,7 +20,7 @@ jobs:
     if: >
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'main')
+      (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'dev'))
     runs-on: ubuntu-latest
 
     steps:
@@ -27,16 +32,16 @@ jobs:
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           port: ${{ secrets.EC2_PORT || 22 }}
           script_stop: true
+          envs: APP_DIR,DEPLOY_BRANCH,NODE_ENV,PM2_APP_NAME
           script: |
             set -euo pipefail
-            echo "Deploy dir: ${{ secrets.EC2_APP_DIR }}"
-            cd "${{ secrets.EC2_APP_DIR }}"
-            pwd
-            git fetch --all
-            git checkout main
-            git pull origin main
-            npm ci
-            npm run build
-            npx prisma migrate deploy
-            pm2 start ecosystem.config.cjs --only backend --update-env || pm2 restart backend --update-env
-            pm2 save
+            APP_DIR="${{ secrets.EC2_APP_DIR }}"
+            NODE_ENV="production"
+            PM2_APP_NAME="backend"
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              DEPLOY_BRANCH="${{ github.event.inputs.branch }}"
+            elif [ "${{ github.event_name }}" = "workflow_run" ]; then
+              DEPLOY_BRANCH="${{ github.event.workflow_run.head_branch }}"
+            fi
+            export APP_DIR DEPLOY_BRANCH NODE_ENV PM2_APP_NAME
+            bash "${APP_DIR}/deploy/ec2-deploy.sh"

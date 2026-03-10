@@ -107,8 +107,10 @@ http://localhost:5000
 This repo now includes:
 - CI workflow: `.github/workflows/ci.yml`
 - CD workflow (EC2 deploy): `.github/workflows/cd-ec2.yml`
+- EC2 deploy script: `deploy/ec2-deploy.sh`
 
-CD deploy runs when CI succeeds on `main` (or manually via `workflow_dispatch`).
+CI runs on `main` and `dev`.
+CD deploy runs when CI succeeds on `main` or `dev` (or manually via `workflow_dispatch`).
 
 Set these repository secrets in GitHub before using CD:
 - `EC2_HOST` (example: `3.144.30.109`)
@@ -116,3 +118,8 @@ Set these repository secrets in GitHub before using CD:
 - `EC2_USER` (example: `ubuntu`)
 - `EC2_SSH_PRIVATE_KEY` (private key content for SSH)
 - `EC2_APP_DIR` (example: `/home/ubuntu/career-preparation-backend`)
+
+`deploy/ec2-deploy.sh` expects your EC2 host to already have:
+- Node.js + npm
+- PM2 (`pm2`)
+- A checked-out copy of this repo at `EC2_APP_DIR`
