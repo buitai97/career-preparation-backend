@@ -18,10 +18,10 @@ const allowedOrigins = [process.env.FRONTEND_URL || "http://localhost:3000"]
 
 app.use(cors({
     origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
-} ));
+}));
 
 // Import routes
 app.get('/', (req, res) => {
