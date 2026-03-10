@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/home/ubuntu/career-preparation-backend}"
+APP_DIR="${APP_DIR:-/var/www/backend}"
 DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
 NODE_ENV="${NODE_ENV:-production}"
 PM2_APP_NAME="${PM2_APP_NAME:-backend}"
