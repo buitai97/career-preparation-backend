@@ -15,6 +15,66 @@ const normalizeInterviewType = (
         : undefined;
 };
 
+const normalizeSentences = (text: string): string[] => {
+    return text
+        .split(/[\n.;]+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+};
+
+const scoreBandSummary = (score: number): string => {
+    if (score >= 85) return "Strong performance overall. Your responses were clear and well-structured.";
+    if (score >= 70) return "Solid session overall. Your foundation is good with room for sharper storytelling.";
+    if (score >= 55) return "Developing performance. Focus on clearer structure and impact statements.";
+    return "Early-stage performance. Prioritize STAR structure, specificity, and measurable outcomes.";
+};
+
+const buildSessionOverallFeedback = async (sessionId: string) => {
+    const session = await prisma.interviewSession.findUnique({
+        where: { id: sessionId },
+        include: {
+            questions: {
+                include: {
+                    answers: {
+                        include: { feedback: true },
+                    },
+                },
+            },
+        },
+    });
+
+    if (!session) return null;
+
+    const feedbacks = session.questions.flatMap((question) =>
+        question.answers
+            .map((answer) => answer.feedback)
+            .filter((feedback): feedback is NonNullable<typeof feedback> => Boolean(feedback))
+    );
+
+    if (!feedbacks.length) return null;
+
+    const strengths = Array.from(
+        new Set(
+            feedbacks.flatMap((feedback) => normalizeSentences(feedback.strengths))
+        )
+    ).slice(0, 3);
+
+    const improvements = Array.from(
+        new Set(
+            feedbacks.flatMap((feedback) => normalizeSentences(feedback.improvements))
+        )
+    ).slice(0, 3);
+
+    const avgScore = feedbacks.reduce((sum, feedback) => sum + feedback.score, 0) / feedbacks.length;
+
+    return {
+        overallScore: avgScore,
+        summary: scoreBandSummary(avgScore),
+        topStrengths: strengths,
+        focusAreas: improvements,
+    };
+};
+
 export const createSession = async (
     userId: string,
     role: string,
@@ -92,6 +152,18 @@ export const submitAnswer = async (
     questionId: string,
     answer: string
 ) => {
+    const fullQuestion = await prisma.interviewQuestion.findFirst({
+        where: {
+            id: questionId,
+            session: {
+                userId,
+            },
+        },
+    });
+
+    if (!fullQuestion) {
+        throw new Error("Question not found or unauthorized");
+    }
 
     const createdAnswer = await prisma.interviewAnswer.create({
         data: {
@@ -99,15 +171,12 @@ export const submitAnswer = async (
             answer,
         },
     });
-    const fullQuestion = await prisma.interviewQuestion.findUnique({
-        where: { id: questionId },
-    });
 
     const aiFeedback: AIFeedback = await generateFeedback(
-        fullQuestion!.question,
+        fullQuestion.question,
         answer
     );
-    await prisma.answerFeedback.create({
+    const createdFeedback = await prisma.answerFeedback.create({
         data: {
             answerId: createdAnswer.id,
             score: aiFeedback.score,
@@ -115,8 +184,27 @@ export const submitAnswer = async (
             improvements: aiFeedback.improvements || "",
         },
     });
-    await finalizeSessionIfComplete(fullQuestion!.sessionId);
+    await finalizeSessionIfComplete(fullQuestion.sessionId);
 
+    const session = await prisma.interviewSession.findUnique({
+        where: { id: fullQuestion.sessionId },
+        select: { status: true },
+    });
+
+    return {
+        answerId: createdAnswer.id,
+        questionId,
+        feedback: {
+            score: createdFeedback.score,
+            strengths: createdFeedback.strengths,
+            improvements: createdFeedback.improvements,
+        },
+        sessionCompleted: session?.status === "COMPLETED",
+        overallFeedback:
+            session?.status === "COMPLETED"
+                ? await buildSessionOverallFeedback(fullQuestion.sessionId)
+                : null,
+    };
 };
 
 export const addFeedback = async (
