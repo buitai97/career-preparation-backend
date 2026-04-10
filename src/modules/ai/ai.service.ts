@@ -47,7 +47,7 @@ export const generateInterviewQuestions = async (
 ): Promise<string[]> => {
     try {
         const response = await openai.chat.completions.create({
-            model: "gpt-4.1-nano",
+            model: "gpt-4o-mini",
             messages: [
                 {
                     role: "system",
@@ -111,7 +111,14 @@ Return JSON in this exact format:
         temperature: 0.4,
     });
 
-    const raw = JSON.parse(response.choices[0].message.content!);
+    const content = response.choices[0].message.content;
+    if (!content) {
+        throw new Error("Empty response from AI feedback model");
+    }
+
+    // Strip markdown code fences if present
+    const jsonText = content.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    const raw = JSON.parse(jsonText);
 
     // Runtime validation
     const parsed = AIFeedbackSchema.parse(raw);

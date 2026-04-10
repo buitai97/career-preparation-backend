@@ -5,6 +5,9 @@ APP_DIR="${APP_DIR:-/var/www/backend}"
 DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
 NODE_ENV="${NODE_ENV:-production}"
 PM2_APP_NAME="${PM2_APP_NAME:-backend}"
+DOMAIN="${DOMAIN:-yourdomain.com}"
+API_DOMAIN="${API_DOMAIN:-api.${DOMAIN}}"
+NGINX_CONF_DIR="${NGINX_CONF_DIR:-/etc/nginx/sites-available}"
 
 echo "Starting EC2 deploy"
 echo "APP_DIR=${APP_DIR}"
@@ -35,5 +38,25 @@ npx prisma migrate deploy
 pm2 start ecosystem.config.cjs --only "${PM2_APP_NAME}" --update-env || \
   pm2 restart "${PM2_APP_NAME}" --update-env
 pm2 save
+
+# ── Sync nginx config if it changed ─────────────────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if command -v nginx &>/dev/null; then
+  echo "==> Syncing nginx config..."
+
+  sed "s/api\.yourdomain\.com/${API_DOMAIN}/g" \
+      "${SCRIPT_DIR}/nginx/backend.conf" \
+      > "${NGINX_CONF_DIR}/backend.conf"
+
+  sed "s/yourdomain\.com/${DOMAIN}/g" \
+      "${SCRIPT_DIR}/nginx/frontend.conf" \
+      > "${NGINX_CONF_DIR}/frontend.conf"
+
+  nginx -t && systemctl reload nginx
+  echo "==> nginx reloaded"
+else
+  echo "==> nginx not found — skipping config sync (run setup-https.sh first)"
+fi
 
 echo "Deploy completed successfully"
